@@ -5,7 +5,7 @@ import SearchView from './SearchView';
 class Search extends Component {
     render() {
         return (
-            <SearchView />
+            <SearchView navigation={this.props.navigation}/>
         );
     }
 }

@@ -24,15 +24,49 @@ class Shop extends Component {
             cartArray: []
         }
         global.addProductToCart = this.addProductToCart.bind(this);
+        global.incrQuantity = this.incrQuantity.bind(this);
+        global.decQuantity = this.decQuantity.bind(this);
+        global.removeProduct = this.removeProduct.bind(this);
+        global.onFocusSearch = this.onFocusSearch.bind(this);
+    }
+    onFocusSearch()
+    {
+        this.setState({
+            selectedTab: 'Search'
+        })
     }
     addProductToCart(product){
         this.setState({
             cartArray: this.state.cartArray.concat({product, quantity: 1})
         },() =>{ saveCart(this.state.cartArray);})
-        console.log('99999999999999999999999999');
-        console.log(this.state.cartArray);
-        console.log('99999999999999999999999999');
        
+    }
+    incrQuantity(productId){
+        const newCart = this.state.cartArray.map(e => {
+            if(e.product.id !== productId) return e;
+            return { product: e.product, quantity: e.quantity + 1}
+        })
+        this.setState({
+            cartArray: newCart
+        },() =>{ saveCart(this.state.cartArray);})
+    }
+    
+    decQuantity(productId){
+        const newCart = this.state.cartArray.map(e => {
+            if(e.product.quantity !== 0) {
+            if(e.product.id !== productId) return e;
+            return { product: e.product, quantity: e.quantity - 1}
+            }
+        })
+        this.setState({
+            cartArray: newCart
+        },() =>{ saveCart(this.state.cartArray);})
+    }
+    removeProduct(productID){
+        const newCart = this.state.cartArray.filter(e => e.product.id !== productID);
+        this.setState({
+            cartArray: newCart
+        },() =>{ saveCart(this.state.cartArray);})
     }
     openMenu() {
         const { open } = this.props;
@@ -51,7 +85,7 @@ class Shop extends Component {
                 TopProducts: resJSON.product
             })
         });
-        getCart().then(cartArray => this.setState({
+        getCart().then(cartArray =>  this.setState({
             cartArray
         }));
     }
@@ -59,7 +93,7 @@ class Shop extends Component {
         const { types, TopProducts } = this.state;
         return (
             <View style={{ flex:1 }}>
-                <Header onOpen={this.openMenu.bind(this)}/>
+                <Header onOpen={this.openMenu.bind(this)} navigation={this.props.navigation} />
                 <TabNavigator>
                     <TabNavigator.Item
                         selected={this.state.selectedTab === 'home'}
@@ -86,7 +120,7 @@ class Shop extends Component {
                         renderIcon={() => <Image style={styles.icon} source={require('../../../assets/appicon/search0.png')} />}
                         renderSelectedIcon={() => <Image style={styles.icon} source={require('../../../assets/appicon/search.png')} />}
                         onPress={() => this.setState({ selectedTab: 'Search' })}>
-                        <Search />
+                        <Search navigation={this.props.navigation}/>
                     </TabNavigator.Item>
                     <TabNavigator.Item
                         selected={this.state.selectedTab === 'Contact'}

@@ -1,10 +1,36 @@
 import React, { Component } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, Image, TextInput, StyleSheet } from 'react-native';
+import global from './global';
+import searchProduct from '../api/searchProduct';
 
 const { height } = Dimensions.get("window");
 
 class Header extends Component {
-
+    constructor(props){
+        super(props);
+        this.state={
+            txtSearch: ''
+        }
+        
+    }
+   
+    onSearch(){
+        searchProduct(this.state.txtSearch)
+        .then(res =>{
+            global.searchXong(res);
+            console.log('====================================');
+            console.log(res);
+            console.log('====================================');
+        })
+        .catch(err => {
+            
+            console.log('====================================');
+            console.log(err);
+            console.log('====================================');});
+    }
+    onFocus(){
+        global.onFocusSearch();
+    }
     render() {
         const { wrapper, row1, textInput, iconStyle } = styles;
         return (
@@ -18,7 +44,12 @@ class Header extends Component {
                         <Image source={require('../assets/appicon/ic_logo.png')} style={iconStyle} />
                     </TouchableOpacity>
                 </View>
-                <TextInput style={ textInput } underlineColorAndroid='transparent' placeholder='What do you buy?' />
+                <TextInput style={ textInput } 
+                onFocus={this.onFocus.bind(this)}
+                underlineColorAndroid='transparent' placeholder='What do you buy?' 
+                onChangeText={text=>this.setState({txtSearch: text})}
+                onSubmitEditing={this.onSearch.bind(this)}
+                />
             </View>
         );
     }

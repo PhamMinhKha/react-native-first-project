@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import { View, Text, TouchableOpacity, Button, StyleSheet, Image, Dimensions } from 'react-native';
+import global from '../global';
+import getToken from '../../api/getToken';
+import saveToken from '../../api/saveToken';
 
 const { height } = Dimensions.get('window');
 
@@ -7,8 +10,31 @@ class Menu extends Component {
     constructor(props){
         super(props);
         this.state={
-            isLogin: true
+            isLogin: false
         }
+        global.onSignIn = this.onSignIn.bind(this);
+    }
+    componentDidMount(){
+        const token = getToken('@token');
+        console.log('token here --------------------');
+        console.log(token);
+        console.log('token here --------------------');
+    }
+    onSignOut()
+    {
+        this.setState({
+            isLogin: null
+        });
+        saveToken('');
+
+    }
+    onSignIn(user){
+        console.log('====================================');
+        console.log(user);
+        console.log('====================================');
+        this.setState({
+            isLogin: user
+        });
     }
     openMenu() {
         alert('123');
@@ -20,22 +46,22 @@ class Menu extends Component {
         const { container, profileIcon, button, text } = styles;
         const logoutJSX = (
             <View>
-                <TouchableOpacity style={button} onPress={() => this.props.navigation.navigate('Authentication')}>
+                <TouchableOpacity style={button} onPress={() => this.props.navigation.navigate('Authentication')} navigation = {this.props.navigation}>
                     <Text style={text}>Sign In</Text>
                 </TouchableOpacity>
             </View>
         );
         const loginJSX = (
             <View>
-            <Text style={{ color: '#fff'}}>Pham Minh Kha</Text>
+            <Text style={{ color: '#fff'}}>{this.state.isLogin !== null ? this.state.isLogin.name : ''}</Text>
             <View>
-                <TouchableOpacity style={button} onPress={() => this.props.navigation.navigate('ChangeInfo')}>
+                <TouchableOpacity style={button} onPress={() => this.props.navigation.navigate('ChangeInfo')} navigation={this.props.navigation}>
                     <Text style={text}>Change Info</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={button} onPress={() => this.props.navigation.navigate('OrderHistory')}>
                     <Text style={text}>Order History</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={button}>
+                <TouchableOpacity style={button} onPress={this.onSignOut.bind(this)}>
                     <Text style={text}>Sign Out</Text>
                 </TouchableOpacity>
             </View>

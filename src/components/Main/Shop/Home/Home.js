@@ -4,12 +4,14 @@ import Collection from './Collection';
 import Category from './Category';
 import TopProduct from './TopProduct';
 
+
 class Home extends Component {
     constructor(props) {
         super(props);
         this.state = {
             topProducts : []
         }
+       
     }
     
     componentWillReceiveProps(nextProps){
@@ -25,7 +27,7 @@ class Home extends Component {
             <ScrollView
              style={{ flex:1, backgroundColor:'#DBDBDB'}}>
                 <Collection/>
-                <Category types={types} />
+                <Category types={types} navigation={this.props.navigation}/>
                 <TopProduct navigation={this.props.navigation} topProducts={this.state.topProducts}/>
                 <TouchableOpacity >
                     <Text>on press</Text>

@@ -1,74 +1,97 @@
 import React, { Component } from 'react'
-import { View, Text, StyleSheet, Image, ScrollViewm, TouchableOpacity } from "react-native"
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ListView, RefreshControl } from "react-native"
+import getListProduct from '../../../../api/getListProduct';
 
 export default class ProductList extends Component {
+  constructor(props) {
+    super(props);
+    const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
+    this.state = {
+      dataSource: ds.cloneWithRows([]),
+      refreshing: false,
+      page: 1,
+      rawdata:[]
+    };
+  }
+  componentDidMount() {
+    const { navigation } = this.props;
+    const idType = navigation.getParam('idType');
+    getListProduct(idType, 1)
+      .then(arrProduct => {
+        this.setState({
+          dataSource: this.state.dataSource.cloneWithRows(arrProduct),
+          rawdata: arrProduct
+        })
+        console.log('====================================');
+        console.log(arrProduct);
+        console.log('====================================');
+      })
+      .catch(err => console.log(err));
+  }
   render() {
+    const { navigation } = this.props;
+    const title = navigation.getParam('title');
+    const idType = navigation.getParam('idType');
     const { topText, topWrapper, icon, wrapper, content, productImage, productContent, productWrapper } = styles;
     return (
       <View style={wrapper}>
-        <ScrollView style={content}>
-          <View style={topWrapper}>
-            <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
+        <View style={topWrapper}>
+          <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
             <Image source={require('../../../../assets/appicon/backList.png')} style={icon} />
-            <Text style={topText}>this is product list</Text>
+            <Text style={topText}>{title}</Text>
             <View></View>
-            </TouchableOpacity>
-          </View>
-          <View>
+          </TouchableOpacity>
+        </View>
+        <ListView
+          contentContainerStyle={content}
+          dataSource={this.state.dataSource}
+
+          enableEmptySections={true}
+          renderRow={(row) => (
             <View style={productWrapper}>
-              <Image source={require('../../../../assets/temp/sp3.jpeg')} style={productImage}  resizeMode="contain"/>
+              <Image source={{ uri: `http://192.168.56.1/webservice/app/images/product/${row.images[0]}` }} style={productImage} resizeMode="contain" />
               <View style={productContent}>
-                <Text style={styles.detailName}>Lace Sleeve Si</Text>
-                <Text style={styles.detailPrice}>$300</Text>
-                <Text>Matearal leather</Text>
+                <Text style={styles.detailName}>{row.name}</Text>
+                <Text style={styles.detailPrice}>${row.price}</Text>
+                <Text>{row.material}</Text>
                 <View style={styles.detailColorWrapper}>
-                  <Text>Coler RoyalBlye</Text>
+                  <Text>{row.color}</Text>
                   <Text style={styles.circleText}></Text>
-                  <Text>View Detail</Text>
+                  <TouchableOpacity onPress={() => this.props.navigation.navigate('ProductDetail', {
+                    product: row
+                  })}>
+                    <Text>View Detail</Text>
+                  </TouchableOpacity>
+
                 </View>
               </View>
-            </View>
-            <View style={productWrapper}>
-              <Image source={require('../../../../assets/temp/sp1.jpeg')} style={productImage}  resizeMode="contain"/>
-              <View style={productContent}>
-                <Text style={styles.detailName}>Lace Sleeve Si</Text>
-                <Text style={styles.detailPrice}>$300</Text>
-                <Text>Matearal leather</Text>
-                <View style={styles.detailColorWrapper}>
-                  <Text>Coler RoyalBlye</Text>
-                  <Text style={styles.circleText}></Text>
-                  <Text>View Detail</Text>
-                </View>
-              </View>
-            </View>
-            <View style={productWrapper}>
-              <Image source={require('../../../../assets/temp/sp2.jpeg')} style={productImage}  resizeMode="contain"/>
-              <View style={productContent}>
-                <Text style={styles.detailName}>Lace Sleeve Si</Text>
-                <Text style={styles.detailPrice}>$300</Text>
-                <Text>Matearal leather</Text>
-                <View style={styles.detailColorWrapper}>
-                  <Text>Coler RoyalBlye</Text>
-                  <Text style={styles.circleText}></Text>
-                  <Text>View Detail</Text>
-                </View>
-              </View>
-            </View>
-            <View style={productWrapper}>
-              <Image source={require('../../../../assets/temp/sp4.jpeg')} style={productImage}  resizeMode="contain"/>
-              <View style={productContent}>
-                <Text style={styles.detailName}>Lace Sleeve Si</Text>
-                <Text style={styles.detailPrice}>$300</Text>
-                <Text>Matearal leather</Text>
-                <View style={styles.detailColorWrapper}>
-                  <Text>Coler RoyalBlye</Text>
-                  <Text style={styles.circleText}></Text>
-                  <Text>View Detail</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        </ScrollView>
+            </View>)
+
+          }
+          refreshControl={
+            <RefreshControl
+              refreshing={this.state.refreshing}
+              onRefresh={() => {
+                this.setState({
+                  refreshing: true
+                });
+                const newPage = this.state.page + 1;
+                getListProduct(idType, newPage)
+                  .then(arrProduct => {
+                    arrProduct = arrProduct.concat(this.state.rawdata);
+                    console.log('====================================');
+                    console.log(arrProduct);
+                    console.log('====================================');
+                    this.setState({
+                      dataSource: this.state.dataSource.cloneWithRows(arrProduct),
+                      refreshing: false
+                    })
+                  });
+                }}
+            />
+          }
+        >
+        </ListView>
       </View>
     )
   }
@@ -87,12 +110,12 @@ const styles = StyleSheet.create({
   },
   detailName: {
     color: 'silver',
-    marginTop:5,
+    marginTop: 5,
     marginBottom: 5
   },
   detailPrice: {
     color: 'purple',
-    marginTop:5,
+    marginTop: 5,
     marginBottom: 5
   },
   productWrapper: {
@@ -116,11 +139,11 @@ const styles = StyleSheet.create({
   topWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    borderBottomWidth:1,
+    borderBottomWidth: 1,
     borderColor: 'silver',
     paddingBottom: 10,
   },
-  topText:{
+  topText: {
     color: 'purple',
     fontSize: 16
   },

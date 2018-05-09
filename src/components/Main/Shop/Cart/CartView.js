@@ -3,7 +3,7 @@ import {
     View, Text, TouchableOpacity, ScrollView, 
     Dimensions, StyleSheet, Image, ListView 
 } from 'react-native';
-
+import global from '../../../global';
 
 
 function toTitleCase(str) {
@@ -11,6 +11,7 @@ function toTitleCase(str) {
 }
 
 class CartView extends Component {
+    
     constructor() {
         super();
         const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
@@ -18,6 +19,15 @@ class CartView extends Component {
           dataSource: ds.cloneWithRows([]),
         };
       }
+    incrQuantity(id) {
+        global.incrQuantity(id);
+    }
+    decQuantity(id) {
+        global.decQuantity(id);
+    }
+    removeProduct(id){
+        global.removeProduct(id);
+    }
     gotoDetail() {
         const { navigator } = this.props;
         navigator.push({ name: 'PRODUCT_DETAIL' });
@@ -32,7 +42,7 @@ class CartView extends Component {
         console.log(nextProps);
         console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
         this.setState({
-            dataSource: this.state.dataSource.cloneWithRows(this.props.cartArray)
+            dataSource: this.state.dataSource.cloneWithRows(nextProps.cartArray)
         })
     }
     componen
@@ -42,6 +52,9 @@ class CartView extends Component {
         product, mainRight, productController,
             txtName, txtPrice, productImage, numberOfProduct, 
             txtShowDetail, showDetailContainer } = styles;
+            const {cartArray} = this.props;
+            const arrTotal = cartArray.map(e => e.product.price * e.quantity);
+            const total = arrTotal.length ? arrTotal.reduce((a,b) => a+b) : 0;
         return (
             <View style={wrapper}>
                 <ListView 
@@ -54,7 +67,7 @@ class CartView extends Component {
                             <View style={{ justifyContent: 'space-between', flexDirection: 'row' }}>
                                 <Text style={txtName}>{toTitleCase(cartItem.product.name)}</Text>
                                 <TouchableOpacity>
-                                    <Text style={{ fontFamily: 'Avenir', color: '#969696' }}>X</Text>
+                                    <Text style={{ fontFamily: 'Avenir', color: '#969696' }} onPress={() => this.removeProduct(cartItem.product.id)}>X</Text>
                                 </TouchableOpacity>
                             </View>
                             <View>
@@ -62,11 +75,11 @@ class CartView extends Component {
                             </View>
                             <View style={productController}>
                                 <View style={numberOfProduct}>
-                                    <TouchableOpacity>
+                                    <TouchableOpacity onPress={() => this.incrQuantity(cartItem.product.id)}>
                                         <Text>+</Text>
                                     </TouchableOpacity>
                                     <Text>{cartItem.quantity}</Text>
-                                    <TouchableOpacity>
+                                    <TouchableOpacity onPress={() => this.decQuantity(cartItem.product.id)}>
                                         <Text>-</Text>
                                     </TouchableOpacity>
                                 </View>
@@ -79,7 +92,7 @@ class CartView extends Component {
                      )}/>
                 
                 <TouchableOpacity style={checkoutButton}>
-                    <Text style={checkoutTitle}>TOTAL {1000}$ CHECKOUT NOW</Text>
+                    <Text style={checkoutTitle}>TOTAL {total}$ CHECKOUT NOW</Text>
                 </TouchableOpacity>
             </View>
         );
